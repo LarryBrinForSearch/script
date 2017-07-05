@@ -1,42 +1,61 @@
-#!/bin/bash  
+#!/bin/bash
 # record: 以一小时为间隔，访问MySQL数据库，查询website表的行数，并输出到标准输出中，
 
 
 # 等待整点的到来
 wait_for_hour(){
 
-	# 每次休眠20秒，直到遇到整点
-	while [[ true ]]; do
-		if [[ "$(date +%M)" == "00" ]]; then
-			break
-		else 
-			sleep 20s	
+        # 每次休眠20秒，直到遇到整点
+        while [[ true ]]; do
+                if [[ "$(date +%M)" == "00" ]]; then
+                      break
+                else
+                      sleep 20s
 
-		fi
-	done
-	run
+                fi
+        done
+        run
 }
 
 run(){
-	spy
-	sleep 58m
-	wait_for_hour
+        spy
+        sleep 58m
+        wait_for_hour
 
-} 
+}
 # 执行对数据库的访问
 spy(){
 
-	format="%F %T"
-	timestamp=$(date +"$format")
+        format="%F %T"
+        timestamp=$(date +"$format")
 
-	echo $timestamp
-	for (( i=0; i<20; i++)); do echo -n "-"; done
-	echo
 
-	mysql -h 123.56.165.238 -u boxue  -p123456 \
-	-NBe "select count(*), website_name from crawler.website \
-		group by website_name;" 
-	echo 
-	echo
+
+        sort_by_site $timestamp>> sort_by_site.log
+        sort_by_channel $timestamp>> sort_by_channel.log
+}
+sort_by_site(){
+        echo $@
+        for (( i=0; i<20; i++)); do echo -n "-"; done
+        echo
+        mysql -h 123.56.165.238 -u boxue  -p123456 \
+        -NBe "select count(*), website_name from crawler.website \
+                group by website_name;"
+        echo
+        echo
+
+}
+
+sort_by_channel(){
+
+        echo $@
+        for (( i=0; i<20; i++)); do echo -n "-"; done
+        echo
+        mysql -h 123.56.165.238 -u boxue  -p123456 \
+        -NBe "select count(*), channel_name from crawler.website \
+                group by channel_name;"
+        echo
+        echo
 }
 wait_for_hour
+
